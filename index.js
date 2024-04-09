@@ -4,9 +4,14 @@ const nodemailer = require ('nodemailer');
 const fs = require ('fs');
 const schedule = require ('node-schedule');
 const mysql = require ('mysql2');
-const path = require ('path');
+const path = require('path');
+const cors = require('cors');
 
-const app = express ();
+
+
+const app = express();
+
+app.use(cors());
 const PORT = 3000;
 
 const user = 'leandro.meira@ldodev.site'; // Seu endereço de e-mail
