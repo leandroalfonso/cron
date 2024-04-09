@@ -69,7 +69,7 @@
 
 
        function retornaDados() {
-            fetch('/api/agendamentos')
+            fetch('https://cron-delta-rose.vercel.app/api/agendamentos')
                 .then(response => response.json())
                 .then(data => {
                     data.forEach(schedule => {
