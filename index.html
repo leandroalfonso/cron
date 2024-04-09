@@ -45,7 +45,7 @@
             const formData = new FormData(this);
             const date = formData.get("date");
 
-            const response = await fetch(`https://cron-delta-rose.vercel.app/schedule?date=${date}`);
+            const response = await fetch(`https://main--agendamentos-cron.netlify.app/schedule?date=${date}`);
             const data = await response.json();
             document.getElementById("message").textContent = `E-mail agendado para ${data.date}`;
 
@@ -69,7 +69,7 @@
 
 
        function retornaDados() {
-            fetch('https://cron-delta-rose.vercel.app/api/agendamentos')
+            fetch('https://main--agendamentos-cron.netlify.app/api/agendamentos')
                 .then(response => response.json())
                 .then(data => {
                     data.forEach(schedule => {
