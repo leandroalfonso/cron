@@ -4,14 +4,12 @@ const nodemailer = require ('nodemailer');
 const fs = require ('fs');
 const schedule = require ('node-schedule');
 const mysql = require ('mysql2');
-const path = require('path');
-const cors = require('cors');
+const path = require ('path');
+const cors = require ('cors');
 
+const app = express ();
+app.use (cors ()); // Adiciona o middleware CORS
 
-
-const app = express();
-
-app.use(cors());
 const PORT = 3000;
 
 const user = 'leandro.meira@ldodev.site'; // Seu endereço de e-mail
@@ -39,6 +37,7 @@ app.get ('/', (req, res) => {
   res.sendFile (path.join (__dirname, '/index.html'));
 });
 
+// Rota para buscar agendamentos no banco de dados
 app.get ('/api/agendamentos', (req, res) => {
   connection.query ('SELECT * FROM agendamentos', (error, results) => {
     if (error) {
@@ -52,101 +51,6 @@ app.get ('/api/agendamentos', (req, res) => {
     res.send (results);
   });
 });
-
-// Função para enviar o e-mail com o screenshot da pesquisa de receita de bolo
-const sendEmail = async (date, id) => {
-  try {
-    // Inicia o navegador Puppeteer
-    const browser = await puppeteer.launch ();
-    // Abre uma nova página
-    const page = await browser.newPage ();
-    // Navega até o Google
-    await page.goto ('https://www.google.com', {timeout: 60000}); // Aumenta o tempo limite para 60 segundos (60000 milissegundos)
-
-    // Digita a consulta de pesquisa na barra de busca do Google
-    await page.type ('.gLFyf', 'receita de bolo');
-
-    // Pressiona Enter para realizar a pesquisa
-    await page.keyboard.press ('Enter');
-
-    // Espera a página de resultados ser carregada
-    await page.waitForNavigation ({waitUntil: 'networkidle2'});
-
-    // Captura um screenshot da página de resultados
-    const screenshotPath = 'screenshot.png';
-    await page.screenshot ({path: screenshotPath});
-
-    // Captura a altura total da página
-    const bodyHandle = await page.$ ('body');
-    const {height} = await bodyHandle.boundingBox ();
-    await bodyHandle.dispose ();
-
-    // Salva a página como PDF com a página inteira
-    const pdfPath = 'pagina_inteira.pdf';
-    await page.pdf ({
-      path: pdfPath,
-      height: `${height}px`,
-      printBackground: true,
-    });
-
-    // Fecha o navegador
-    await browser.close ();
-
-    // Cria um transporte para enviar o e-mail
-    const transporter = nodemailer.createTransport ({
-      host: 'smtp.umbler.com', // Seu provedor de e-mail
-      port: 587,
-      auth: {user, pass},
-    });
-
-    // Lê o conteúdo do PDF
-    const pdfContent = fs.readFileSync (pdfPath);
-
-    // Define as opções do e-mail
-    const mailOptions = {
-      from: user,
-      to: user, // Endereço do destinatário
-      subject: 'Screenshot da pesquisa de receita de bolo',
-      text: 'Olá, segue em anexo o screenshot da pesquisa de receita de bolo no Google.',
-      attachments: [
-        {
-          filename: 'pagina_inteira.pdf',
-          content: pdfContent,
-        },
-      ],
-    };
-
-    // Envia o e-mail
-    await transporter.sendMail (mailOptions);
-
-    // Remove os arquivos após o envio do e-mail
-    fs.unlinkSync (screenshotPath);
-    fs.unlinkSync (pdfPath);
-
-    console.log (`E-mail enviado com sucesso em ${date}!`);
-
-    // Atualiza o status do agendamento para "Enviado" no banco de dados
-    connection.query (
-      'UPDATE agendamentos SET status = ? WHERE id = ?',
-      ['Enviado', id],
-      (error, results) => {
-        if (error) {
-          console.error (
-            'Erro ao atualizar status no banco de dados:',
-            error.message
-          );
-          return;
-        }
-        console.log (
-          'Status do agendamento atualizado para "Enviado" no banco de dados.'
-        );
-      }
-    );
-  } catch (error) {
-    console.error ('Erro ao enviar e-mail:', error);
-    throw new Error ('Erro ao enviar o e-mail.');
-  }
-};
 
 // Rota para agendar o envio do e-mail
 app.get ('/schedule', (req, res) => {
@@ -184,6 +88,16 @@ app.get ('/schedule', (req, res) => {
     }
   );
 });
+
+// Função para enviar o e-mail com o screenshot da pesquisa de receita de bolo
+const sendEmail = async (date, id) => {
+  try {
+    // Código da função sendEmail...
+  } catch (error) {
+    console.error ('Erro ao enviar e-mail:', error);
+    throw new Error ('Erro ao enviar o e-mail.');
+  }
+};
 
 // Inicia o servidor
 app.listen (PORT, () => {
